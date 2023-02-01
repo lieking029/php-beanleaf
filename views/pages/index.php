@@ -5,6 +5,13 @@ require "./views/layouts/app.layout.php";
         header("location:login");
     }
 
+    $id = $_SESSION["id"];
+    $select = "SELECT * FROM `users` WHERE id=$id ";
+    $sql = mysqli_query($con, $select);
+    $row = mysqli_fetch_assoc($sql);
+    $profile = $row["profile"];
+    $name = $row["name"];
+
     
 ?>
 
@@ -15,14 +22,6 @@ require "./views/layouts/app.layout.php";
             <div class="col-lg-3">
             <div>
                 <?php
-                    $id = $_SESSION["id"];
-                    $select = "SELECT * FROM `users` WHERE id=$id ";
-                    $sql = mysqli_query($con, $select);
-
-                    $row = mysqli_fetch_assoc($sql);
-                    $profile = $row["profile"];
-                    $name = $row["name"];
-
                     echo '
                     <img src='.$profile.' class="rounded-circle img-fluid" height="50" width="50" />
                     <label style="font-size: 20px; margin-top: 20px;" class="mx-2" ><strong> '.$name.' </strong></label>
@@ -37,12 +36,15 @@ require "./views/layouts/app.layout.php";
                 </div>
             </div>
 
-
             <div class="col-lg-6">
 
                 <div class="card my-3">
-                        <div class="d-flex p-3 ">
-                        <img src="https://scontent.fmnl13-2.fna.fbcdn.net/v/t39.30808-6/316541946_876752107083217_5841789909563890176_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=09cbfe&_nc_eui2=AeHp6OL09d2UfnUuFcRlp8baIdqJpC8rMSgh2omkLysxKCdoRpbmZRyInp5_zCnXNT8QmYMTBdoAECcciFLtEg89&_nc_ohc=43_j5xmtnF4AX8pkb_w&_nc_ht=scontent.fmnl13-2.fna&oh=00_AfAeCFT1YaxW2oJRP2qyxDlcjwK81unTk6024MXZEsPV8A&oe=63D2885B" class="rounded-circle img-fluid" height="35" width="35" />
+                 <div class="d-flex p-3 ">
+                    <?php
+                        echo '
+                        <img src='.$profile.' class="rounded-circle img-fluid" height="35" width="35" />
+                        '
+                        ?>
                         <a href="create-post" class="form-control text-center mx-2" style="text-decoration: none;" >
                             What's on your mind, John Michael ?
                         </a>
@@ -50,39 +52,62 @@ require "./views/layouts/app.layout.php";
                 </div>
 
                 <?php
-                    $select = "SELECT * FROM `post`";
+
+                    if(isset($_POST["submit"])) {
+                        $id = $_SESSION["id"];
+                        $react = $_POST["react"];
+
+                    // dd($react);
+                        $sql = "INSERT INTO `notifications` (user_id, likes) VALUES ('$id', '$react') ";
+                        $data = mysqli_query($con, $sql);
+
+                        if($data) {
+                            header("location:dashboard");
+                        } else {
+                            echo "failed";
+                        }
+                    }                    
+
+                    $select = "SELECT * FROM `post` LEFT JOIN `users` ON `users`.id = `post`.user_id ";
                     $sql = mysqli_query($con, $select);
+
 
                     if($sql) {
                         while($row = mysqli_fetch_assoc($sql)) {
                         $id = $row["id"];
+                        $name = $row["name"];
                         $image = $row["image"];
                         $caption = $row["caption"];
-                        $name = $row["poser_name"];
+                        $name = $row["name"];
                         $date = $row["date"];
                         $tempname = $row["tmp_name"];
+                        $profile = $row["profile"];
+
 
                         if($tempname === "") {
                             echo '
                             <div class="card">
                             <div class="card-header">
-                                <img src="https://scontent.fmnl13-2.fna.fbcdn.net/v/t39.30808-6/316541946_876752107083217_5841789909563890176_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=09cbfe&_nc_eui2=AeHp6OL09d2UfnUuFcRlp8baIdqJpC8rMSgh2omkLysxKCdoRpbmZRyInp5_zCnXNT8QmYMTBdoAECcciFLtEg89&_nc_ohc=43_j5xmtnF4AX8pkb_w&_nc_ht=scontent.fmnl13-2.fna&oh=00_AfAeCFT1YaxW2oJRP2qyxDlcjwK81unTk6024MXZEsPV8A&oe=63D2885B" class="rounded-circle img-fluid" height="35" width="35" />
+                                <img src='.$profile.' class="rounded-circle img-fluid" height="35" width="35" />
                                 <label style="font-size: 15px; margin-top: 20px;" class="mx-2" ><strong>'.$name.'</strong>
                                 <span style="font-size: 12px;">'.$date.'</span>
                             </label> 
                                 <p>'.$caption.'</p>
                             </div>
                             <div class="card-footer">
+                                <form method="POST">
                                 <div class="row">
-                                    <div class="col border border-grey">
-                                        <i class="fas fa-thumbs-up"></i>
-                                        <span>Like</span>
-                                    </div>
-                                    <div class="col border border-grey">
-                                        <i class="fas fa-share"></i>
-                                        <span>Share</span>
-                                    </div>
+                                <button class="col border border-grey" name="submit" >
+                                    <i class="fas fa-thumbs-up"></i>
+                                    <input value="like" name="react" style="border: none; cursor: pointer; background: transparent;"  />
+                                </button>
+
+                                <div class="col border border-grey">
+                                    <i class="fas fa-share"></i>
+                                    <span>Share</span>
                                 </div>
+                            </div>
+                                </form>
                             </div>
                         </div>
                         ';
@@ -90,32 +115,32 @@ require "./views/layouts/app.layout.php";
                         echo '
                         <div class="card">
                         <div class="card-header">
-                            <img src="https://scontent.fmnl13-2.fna.fbcdn.net/v/t39.30808-6/316541946_876752107083217_5841789909563890176_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=09cbfe&_nc_eui2=AeHp6OL09d2UfnUuFcRlp8baIdqJpC8rMSgh2omkLysxKCdoRpbmZRyInp5_zCnXNT8QmYMTBdoAECcciFLtEg89&_nc_ohc=43_j5xmtnF4AX8pkb_w&_nc_ht=scontent.fmnl13-2.fna&oh=00_AfAeCFT1YaxW2oJRP2qyxDlcjwK81unTk6024MXZEsPV8A&oe=63D2885B" class="rounded-circle img-fluid" height="35" width="35" />
+                            <img src='.$profile.' class="rounded-circle img-fluid" height="35" width="35" />
                             <label style="font-size: 15px; margin-top: 20px;" class="mx-2" ><strong>'.$name.'</strong>
                             <span style="font-size: 12px;">'.$date.'</span>
-                         </label> 
+                         </label>
                             <p>'.$caption.'</p>
                         </div>
                         <div class="text-center">
                             <img src='.$image.' class="img-fluid" style="width: 100%;" />;
                         </div>
                         <div class="card-footer">
-                            <div class="row">
-                                <div class="col border border-grey">
-                                    <i class="fas fa-thumbs-up"></i>
-                                    <span>Like</span>
-                                </div>
-                                <div class="col border border-grey">
-                                    <i class="fas fa-share"></i>
-                                    <span>Share</span>
-                                </div>
-                            </div>
+                        <form method="POST">
+                        <div class="row">
+                        <button class="col border border-grey" name="submit" >
+                            <i class="fas fa-thumbs-up"></i>
+                            <input value="like" name="react" style="border: none; cursor: pointer; background: transparent;"  />
+                        </button>
+                        <div class="col border border-grey">
+                            <i class="fas fa-share"></i>
+                            <span>Share</span>
+                        </div>
+                    </div>
+                        </form>
                         </div>
                     </div>
                         ';
                     }
-
-
                         }
                     }
                 ?>
@@ -127,12 +152,34 @@ require "./views/layouts/app.layout.php";
 
             <div class="col-lg-3"> 
                     <h3 class="p-2">Notifications</h3>
-                <div class="container-fluid">
-                    <div class="d-flex">
-                    <img src="https://scontent.fmnl13-2.fna.fbcdn.net/v/t39.30808-6/321397147_702623158174024_2597572170439471206_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=09cbfe&_nc_eui2=AeEkQd1nzazxB_COr8iowKpYpt6HklvYnqqm3oeSW9ieqhU2NXGdC8FnsRIRt-u91w4PhnJ-WvV7q1ENibqYArHL&_nc_ohc=SbTt2lsOaIsAX85TPI9&_nc_ht=scontent.fmnl13-2.fna&oh=00_AfDYCzga6FZUJhS_IgdcYFI1StbQiwZ1cyHGWEo4N7o4DA&oe=63D289AC" alt="" class="rounded-circle image-fluid" height="55" width="55" >
-                    <p class="mx-2" > <strong>John Doe asdsad  sadsadsa  sadsa </strong> liked to your post  </p>
-                    </div>
-                </div>
+
+                    <?php
+
+                    $id = $_SESSION["id"];
+                    $select = "SELECT * FROM `notifications` LEFT JOIN `users` ON `users`.id = `notifications`.user_id AND `notifications`.user_id = $id WHERE  `notifications`.user_id = $id ";
+                    $sql = mysqli_query($con, $select);
+                    
+
+                    if($sql) {
+                        while($row = mysqli_fetch_assoc($sql)) {
+
+                             $name = $row["name"];
+                            $profile = $row["profile"];
+
+                                echo '
+                            <div class="container-fluid">
+                            <div class="d-flex">
+                            <img src='.$profile.' alt="" class="rounded-circle image-fluid" height="55" width="55" >
+                            <p class="mx-2" > <strong> '.$name.' </strong> liked to your post  </p>
+                            </div>
+                        </div>
+                            ';
+
+                        }
+                    }
+
+                    ?>
+                
             </div>
         </div>
     </div>

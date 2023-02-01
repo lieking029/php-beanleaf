@@ -4,13 +4,11 @@ require "./views/layouts/app.layout.php";
     if(!$_SESSION["token"]) {
         header("location:login");
     }
-
     
 
     if(isset($_POST['submit'])){
 
         $id = $_SESSION["id"];
-        $poserName = $_SESSION["name"];
 
         $caption = $_POST["caption"];
 
@@ -19,7 +17,7 @@ require "./views/layouts/app.layout.php";
         $folder = "images/" . $filename;
         move_uploaded_file($tempname, $folder);
 
-        $sql = " INSERT INTO `post` ( caption , image, user_id, poser_name, date, tmp_name ) VALUES ('$caption', '$folder', '$id', '$poserName', NOW(), '$tempname') ";
+        $sql = " INSERT INTO `post` ( caption , image, user_id, date, tmp_name ) VALUES ('$caption', '$folder', '$id', NOW(), '$tempname') ";
         $data = mysqli_query($con, $sql);
 
         if($data) {
@@ -27,7 +25,6 @@ require "./views/layouts/app.layout.php";
         } else {
             echo "failed";
         }
-
     }
 ?>
 
@@ -42,3 +39,4 @@ require "./views/layouts/app.layout.php";
     </div>
 </form>
 </div>
+
